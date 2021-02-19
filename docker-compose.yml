@@ -10,7 +10,9 @@ services:
       - POSTGRES_PORT=${PORT}
   web:
     build: .
+    container_name: web_api
     image: web
+    env_file: .env
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
@@ -21,6 +23,7 @@ services:
       - db
   migration:
     build: .
+    env_file: .env
     command: python manage.py migrate --noinput
     volumes:
       - .:/code
