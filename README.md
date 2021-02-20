@@ -48,3 +48,6 @@ exit
 
 ###Additional links
 You can test API [here](https://board-news.herokuapp.com/). Debug mode is enabled
+Admin user is (login: admin, password: 123)
+
+Postman [collection](https://www.getpostman.com/collections/600c539c2fe43598a8c0)

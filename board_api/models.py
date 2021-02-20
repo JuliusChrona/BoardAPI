@@ -6,17 +6,6 @@ class Post(models.Model):
     title = models.CharField(max_length=255)
     link = models.SlugField(max_length=255, unique=True)
     creation_date = models.DateField(auto_now_add=True)
-    upvotes = models.ManyToManyField(
-        User,
-        through="Upvote",
-        related_name="upvotes",
-    )
-
-    comments = models.ManyToManyField(
-        User,
-        through="Comment",
-        related_name="comments",
-    )
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -41,8 +30,11 @@ class Comment(models.Model):
 
 class Upvote(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="upvotes")
     upvote = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.user.username} upvote for "{self.post.title}"'
+
+    class Meta:
+        unique_together = ["user", "post"]

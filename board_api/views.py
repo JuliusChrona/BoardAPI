@@ -1,5 +1,6 @@
 from django.db.models import Count, Case, When, F
-from rest_framework import permissions
+from rest_framework import permissions, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -34,16 +35,28 @@ class UpvoteView(ModelViewSet):
     queryset = Upvote.objects.all().annotate(upvoted_user=F("user__username"))
     serializer_class = UpvoteSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "post"
 
-    def get_object(self):
-        obj, _ = Upvote.objects.get_or_create(
-            user=self.request.user, post_id=self.kwargs["post"]
-        )
-        return obj
+    def perform_create(self, serializer):
+        serializer.validated_data["user"] = self.request.user
+
+        if not self.validate(serializer):
+            serializer.save()
+        else:
+            error_message = {"post": ["post with this user already exists"]}
+            raise ValidationError(error_message)
+
+    def validate(self, serializer):
+        is_exist = Upvote.objects.filter(
+            post=serializer.validated_data["post"], user=self.request.user
+        ).exists()
+        return is_exist
 
 
 class CommentViewSet(ModelViewSet):
     queryset = Comment.objects.all().annotate(author_name=F("user__username"))
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.validated_data["user"] = self.request.user
+        serializer.save()
